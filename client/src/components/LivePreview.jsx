@@ -25,6 +25,60 @@ function ArrayViz({ label, values, highlight = [], matched = [] }) {
   );
 }
 
+function SkeletonPreview() {
+  return (
+    <div className="live-preview lp-skeleton" aria-hidden="true">
+      <div className="lp-header">
+        <span className="sk sk-text" style={{ width: 90 }} />
+        <span className="sk sk-text" style={{ width: 70 }} />
+      </div>
+
+      <div className="lp-viz">
+        <div className="lp-array-row">
+          <span className="sk sk-text" style={{ width: 50 }} />
+          <div className="lp-array-cells">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <span key={i} className="sk lp-cell-sk" />
+            ))}
+          </div>
+        </div>
+        <div className="lp-array-row">
+          <span className="sk sk-text" style={{ width: 50 }} />
+          <div className="lp-array-cells">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <span key={i} className="sk lp-cell-sk" />
+            ))}
+          </div>
+        </div>
+        <span className="sk sk-text" style={{ width: '80%', height: 12 }} />
+      </div>
+
+      <div className="lp-controls">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <span key={i} className="sk lp-btn-sk" />
+        ))}
+      </div>
+
+      <div className="mac-window lp-code-window">
+        <div className="mac-window-bar">
+          <div className="mac-dots">
+            <span className="mac-dot mac-dot-red"></span>
+            <span className="mac-dot mac-dot-yellow"></span>
+            <span className="mac-dot mac-dot-green"></span>
+          </div>
+        </div>
+        <div className="lp-code lp-code-sk">
+          {[92, 70, 84, 55, 78, 40].map((w, i) => (
+            <div key={i} className="lp-code-line">
+              <span className="sk sk-text" style={{ width: `${w}%`, height: 12 }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function LivePreview({ problem, lang, code, isAuthenticated, toast }) {
   const [status, setStatus] = useState('loading'); // loading | missing | ready | error
   const [trace, setTrace] = useState(null);
@@ -81,20 +135,20 @@ export default function LivePreview({ problem, lang, code, isAuthenticated, toas
     }
   }
 
-  if (status === 'loading') {
-    return <div className="lp-loading">Loading live preview…</div>;
+  if (status === 'loading' || (status === 'missing' && generating)) {
+    return <SkeletonPreview />;
   }
 
   if (status === 'missing' || status === 'error') {
     return (
       <div className="lp-empty">
-        <p>🔮 No live preview added yet for this language.</p>
+        <p>🔮 No live preview generated yet for this language.</p>
         {isAuthenticated ? (
           <button className="btn-save" disabled={generating} onClick={handleGenerate}>
             {generating ? 'Generating…' : 'Generate Live Preview'}
           </button>
         ) : (
-          <p className="lp-empty-sub">The owner needs to add this first.</p>
+          <p className="lp-empty-sub">The owner needs to generate this first.</p>
         )}
       </div>
     );

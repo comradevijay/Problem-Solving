@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { timeAgo } from '../utils';
+import { SkeletonComment } from './Skeletons';
 
 export default function DiscussionModal({ open, problem, isAuthenticated, onClose, toast }) {
   const [comments, setComments] = useState(null); // null = loading
@@ -63,7 +64,13 @@ export default function DiscussionModal({ open, problem, isAuthenticated, onClos
         </div>
         <div className="modal-body disc-body">
           <div className="disc-comments-list">
-            {comments === null && <div className="disc-loading">Loading…</div>}
+            {comments === null && (
+              <>
+                <SkeletonComment />
+                <SkeletonComment />
+                <SkeletonComment />
+              </>
+            )}
             {comments === 'error' && <div className="disc-loading disc-error">Failed to load comments.</div>}
             {Array.isArray(comments) && comments.length === 0 && (
               <div className="disc-empty">No comments yet — be the first! 🚀</div>

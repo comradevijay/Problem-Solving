@@ -5,6 +5,7 @@ import ToastContainer from './components/Toast';
 import Header from './components/Header';
 import Controls from './components/Controls';
 import TopicCard from './components/TopicCard';
+import { SkeletonTopicCard } from './components/Skeletons';
 import ProblemModal from './components/ProblemModal';
 import SolutionModal from './components/SolutionModal';
 import LoginModal from './components/LoginModal';
@@ -12,6 +13,7 @@ import DiscussionModal from './components/DiscussionModal';
 
 export default function App() {
   const [problems, setProblems] = useState([]);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,6 +45,7 @@ export default function App() {
         const data = await api('GET', '/api/problems');
         setProblems(data);
       } catch { /* ignore */ }
+      setInitialLoading(false);
     })();
   }, []);
 
@@ -178,14 +181,20 @@ export default function App() {
       />
 
       <main className="main">
-        {Object.keys(groups).length === 0 && (
+        {initialLoading && (
+          <>
+            <SkeletonTopicCard rows={4} />
+            <SkeletonTopicCard rows={3} />
+          </>
+        )}
+        {!initialLoading && Object.keys(groups).length === 0 && (
           <div className="empty-state visible">
             <div className="empty-icon">🧩</div>
             <p className="empty-title">No problems yet</p>
             <p className="empty-sub">Hit <strong>+ Add Problem</strong> to log your first solve!</p>
           </div>
         )}
-        {Object.entries(groups).map(([topic, items]) => (
+        {!initialLoading && Object.entries(groups).map(([topic, items]) => (
           <TopicCard
             key={topic}
             topic={topic}

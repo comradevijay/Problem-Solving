@@ -1237,3 +1237,35 @@ td {
   padding-left: 17px;
   color: var(--easy);
 }
+
+/* ===== SKELETON SCREENS ===== */
+@keyframes sk-shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.sk {
+  display: inline-block;
+  border-radius: 5px;
+  background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
+  background-size: 200px 100%;
+  animation: sk-shimmer 1.4s ease-in-out infinite;
+}
+
+.sk-text { height: 14px; border-radius: 4px; }
+.sk-pill { width: 44px; height: 20px; border-radius: 20px; }
+
+/* topic card skeleton */
+.sk-card { pointer-events: none; }
+.sk-topic-header { cursor: default; }
+.sk-card .topic-meta { display: flex; gap: 8px; }
+.sk-card td { padding: 12px; }
+
+/* discussion comment skeleton */
+.sk-comment { display: flex; flex-direction: column; }
+
+/* live preview skeleton pieces */
+.lp-skeleton { pointer-events: none; }
+.lp-cell-sk { width: 32px; height: 32px; border-radius: 6px; }
+.lp-btn-sk { width: 34px; height: 34px; border-radius: var(--radius-sm); }
+.lp-code-sk .lp-code-line { display: flex; align-items: center; padding: 4px 20px; }
