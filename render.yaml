@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: dsa-tracker
+    env: node
+    buildCommand: npm run install:all && npm run build
+    startCommand: npm start --prefix server
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: OWNER_PASSWORD
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: MONGODB_URI
+        sync: false

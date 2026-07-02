@@ -1,0 +1,17 @@
+{
+  "name": "dsa-tracker-mern",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DSA Tracker — MERN stack (MongoDB, Express, React + Vite, Node.js)",
+  "scripts": {
+    "install:all": "npm install --prefix server && npm install --prefix client",
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
+    "dev": "concurrently -n SERVER,CLIENT -c blue,magenta \"npm:dev:server\" \"npm:dev:client\"",
+    "build": "npm run build --prefix client",
+    "start": "npm run build && npm start --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
