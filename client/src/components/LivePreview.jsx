@@ -156,6 +156,7 @@ export default function LivePreview({ problem, lang, code, isAuthenticated, toas
 
   const steps = trace.steps;
   const step = steps[stepIdx];
+  const prevStep = stepIdx > 0 ? steps[stepIdx - 1] : null;
   const codeLines = code.split('\n');
 
   return (
@@ -171,12 +172,29 @@ export default function LivePreview({ problem, lang, code, isAuthenticated, toas
         ))}
         {step.vars && Object.keys(step.vars).length > 0 && (
           <div className="lp-vars">
-            {Object.entries(step.vars).map(([k, v]) => (
-              <span className="lp-var" key={k}>{k} = {JSON.stringify(v)}</span>
-            ))}
+            {Object.entries(step.vars).map(([k, v]) => {
+              const hadPrev = prevStep && prevStep.vars && Object.prototype.hasOwnProperty.call(prevStep.vars, k);
+              const isNew = prevStep ? !hadPrev : false;
+              const isChanged = hadPrev && JSON.stringify(prevStep.vars[k]) !== JSON.stringify(v);
+              return (
+                <span
+                  // key includes stepIdx so React remounts the chip on every step,
+                  // which re-triggers the CSS pulse animation even for repeat changes
+                  key={`${k}-${stepIdx}`}
+                  className={`lp-var${isChanged ? ' lp-var-changed' : ''}${isNew ? ' lp-var-new' : ''}`}
+                >
+                  <span className="lp-var-name">{k}</span>
+                  <span className="lp-var-eq"> = </span>
+                  <span className="lp-var-val">{JSON.stringify(v)}</span>
+                </span>
+              );
+            })}
           </div>
         )}
-        <p className="lp-desc">{step.description}</p>
+        <p className="lp-desc" key={stepIdx}>
+          <span className="lp-desc-icon">▸</span>
+          {step.description}
+        </p>
       </div>
 
       <div className="lp-controls">
