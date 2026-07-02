@@ -42,6 +42,28 @@ dsa-tracker-mern/
 └── package.json            ← root scripts to run both together
 ```
 
+## ✨ Live Preview (AI-generated step-by-step visualizer)
+
+Open any problem's **Solution** view and switch to **🔮 Live Preview**. It calls
+[Groq](https://console.groq.com) (free tier) to simulate your saved solution on
+a small example input and returns a step-by-step JSON trace — array/string
+state, highlighted indices, and a plain-English description per step — which
+the UI animates with play/pause and step controls, plus the current line
+highlighted in the code panel underneath.
+
+- Only the **owner** (logged in) can trigger generation, to protect your API
+  quota — visitors can view a preview once it's been generated.
+- Traces are generated once per problem+language and cached on the problem
+  document (`traces` field), so it's not re-called on every view. Logged-in
+  users see a "↻ Regenerate" button to redo it.
+- Get a free key at https://console.groq.com/keys and set it in `server/.env`:
+  ```env
+  GROQ_API_KEY=your_key_here
+  ```
+  Optional: `GROQ_MODEL` to override the default (`llama-3.3-70b-versatile`).
+- If `GROQ_API_KEY` isn't set, generation just fails gracefully with an error
+  toast — the rest of the app is unaffected.
+
 ## Local setup
 
 ```bash
@@ -55,6 +77,7 @@ OWNER_PASSWORD=your_strong_password
 SESSION_SECRET=any_long_random_string_at_least_32_chars
 MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/dsa-tracker?retryWrites=true&w=majority
 PORT=3000
+GROQ_API_KEY=your_groq_api_key_here
 ```
 
 Run both client and server together:

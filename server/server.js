@@ -27,6 +27,9 @@ const problemSchema = new mongoose.Schema({
   }],
   notes:      String,
   notesImage: { type: String, default: '' }, // base64 data URL
+  // Cached AI-generated step-by-step execution traces, keyed by language.
+  // e.g. { python: { example: {...}, steps: [...] }, javascript: {...} }
+  traces:     { type: mongoose.Schema.Types.Mixed, default: {} },
   addedAt:    { type: Number, default: () => Date.now() }
 });
 
@@ -144,7 +147,138 @@ app.delete('/api/problems/:uid', requireAuth, async (req, res) => {
   }
 });
 
-// ── Comment routes ─────────────────────────────────────────────────────────────
+// ── Live Preview traces (AI-generated step-by-step execution) ────────────────────
+//
+// Uses Groq's free-tier OpenAI-compatible API to simulate the solution code
+// on a small example and produce a JSON trace the frontend can animate,
+// similar to a debugger stepping through the code line by line.
+
+const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+
+const TRACE_SYSTEM_PROMPT = `You are a precise code execution tracer used to power a "live preview" visualizer for a DSA (data structures & algorithms) learning app.
+
+Given a problem description and a solution's source code (with 1-indexed line numbers prefixed), mentally execute the code on ONE small, concrete example you choose (short strings/arrays, ideally length 4-10) and emit a step-by-step trace as STRICT JSON — no markdown fences, no prose, no comments.
+
+Rules:
+- Pick an example that actually exercises the interesting logic (not a trivial edge case like empty input), and that matches the problem's stated behavior.
+- Emit one step per meaningful line of execution (skip pure syntax lines like standalone closing braces). Loop iterations should each produce their own step(s).
+- Cap the total number of steps at 18. If the real run is longer, pick a representative subset (start, a few interesting middle iterations, and the conclusion) while keeping "line" accurate for each included step.
+- "line" must be the 1-indexed line number from the given numbered source that this step corresponds to.
+- "description" is a short (<=14 words) plain-English explanation of what happens at this step.
+- "arrays" lists every string/array worth visualizing at this point (e.g. the input, a rotated/sliced copy, a window, a stack). Each entry: "label" (short name), "values" (the array/string as a list of single elements/characters), "highlight" (0-indexed positions currently being acted on/compared), and optionally "matched" (0-indexed positions already confirmed/settled, shown differently from "highlight").
+- "vars" is an object of other scalar variables relevant at this point (e.g. {"i": 3, "found": false}).
+- The final step's description should state the overall result (e.g. "Returns true — s2 is a rotation of s1").
+
+Return ONLY a JSON object of this exact shape:
+{
+  "example": { "<input name>": "<value>", ... },
+  "steps": [
+    {
+      "line": 3,
+      "description": "...",
+      "arrays": [ { "label": "s1", "values": ["a","b","c"], "highlight": [0], "matched": [] } ],
+      "vars": { "i": 0 }
+    }
+  ]
+}`;
+
+function buildNumberedCode(code) {
+  return code.split('\n').map((l, i) => `${i + 1}: ${l}`).join('\n');
+}
+
+async function generateTraceWithGroq({ name, difficulty, topic, notes, code, lang }) {
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error('GROQ_API_KEY is not configured on the server');
+  }
+
+  const userPrompt = `Problem: ${name} (${difficulty}${topic ? `, topic: ${topic}` : ''})
+${notes ? `Notes: ${notes}\n` : ''}
+Language: ${lang}
+Source code (1-indexed lines):
+${buildNumberedCode(code)}`;
+
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: GROQ_MODEL,
+      temperature: 0.2,
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: TRACE_SYSTEM_PROMPT },
+        { role: 'user', content: userPrompt }
+      ]
+    })
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error?.message || `Groq request failed (${res.status})`);
+  }
+
+  const raw = data.choices?.[0]?.message?.content;
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error('Groq returned invalid JSON for the trace');
+  }
+  if (!parsed || !Array.isArray(parsed.steps) || parsed.steps.length === 0) {
+    throw new Error('Groq returned an empty or malformed trace');
+  }
+  return parsed;
+}
+
+// GET cached trace for a problem+language — public (viewing is public, like solutions)
+app.get('/api/problems/:uid/trace/:lang', async (req, res) => {
+  try {
+    const problem = await Problem.findOne({ uid: req.params.uid }).lean();
+    if (!problem) return res.status(404).json({ error: 'Not found' });
+    const trace = problem.traces && problem.traces[req.params.lang];
+    if (!trace) return res.status(404).json({ error: 'No live preview generated yet' });
+    res.json(trace);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST generate (and cache) a trace — owner only, to protect the API key/quota
+app.post('/api/problems/:uid/trace', requireAuth, async (req, res) => {
+  try {
+    const { lang } = req.body;
+    if (!lang) return res.status(400).json({ error: 'lang is required' });
+
+    const problem = await Problem.findOne({ uid: req.params.uid });
+    if (!problem) return res.status(404).json({ error: 'Not found' });
+
+    const solution = (problem.solutions || []).find(s => s.lang === lang);
+    if (!solution || !solution.code.trim()) {
+      return res.status(400).json({ error: `No ${lang} solution saved for this problem yet` });
+    }
+
+    const trace = await generateTraceWithGroq({
+      name: problem.name,
+      difficulty: problem.difficulty,
+      topic: problem.topic,
+      notes: problem.notes,
+      code: solution.code,
+      lang
+    });
+
+    problem.traces = { ...(problem.traces || {}), [lang]: trace };
+    problem.markModified('traces');
+    await problem.save();
+
+    res.json(trace);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 
 // GET comments for a problem — public
 app.get('/api/comments/:uid', async (req, res) => {

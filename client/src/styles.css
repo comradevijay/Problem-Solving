@@ -1028,3 +1028,212 @@ td {
   th, td { padding: 10px 12px; }
   .form-row.two-col { flex-direction: column; }
 }
+/* ===== SOLUTION MODE TOGGLE ===== */
+.solution-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mode-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+}
+
+.mode-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  white-space: nowrap;
+}
+
+.mode-btn:hover { color: var(--text); }
+.mode-btn.active { background: var(--accent); color: #fff; }
+
+/* ===== LIVE PREVIEW ===== */
+.live-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.lp-loading, .lp-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.lp-empty-sub { font-size: 12px; color: var(--text-muted); }
+
+.lp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.lp-header-label { color: var(--accent); }
+
+.lp-viz {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lp-array-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.lp-array-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  min-width: 64px;
+}
+
+.lp-array-cells {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.lp-cell {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  transition: all var(--transition);
+}
+
+.lp-cell-hi {
+  border-color: var(--easy);
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--easy);
+  transform: scale(1.08);
+}
+
+.lp-cell-matched {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.lp-vars {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.lp-var {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-sub);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 3px 8px;
+}
+
+.lp-desc {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.lp-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lp-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  width: 34px;
+  height: 34px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.lp-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.lp-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.lp-btn-play {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+}
+.lp-btn-play:hover { opacity: 0.9; }
+
+.lp-regen {
+  margin-left: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  padding: 0 12px;
+  height: 34px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.lp-regen:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+
+.lp-code-window { margin-top: 2px; }
+
+.lp-code {
+  padding: 0;
+}
+
+.lp-code-line {
+  padding: 2px 20px;
+  white-space: pre;
+}
+
+.lp-code-line-active {
+  background: rgba(34, 197, 94, 0.12);
+  border-left: 3px solid var(--easy);
+  padding-left: 17px;
+  color: var(--easy);
+}

@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
+import LivePreview from './LivePreview';
 
-export default function SolutionModal({ open, problem, onClose }) {
+export default function SolutionModal({ open, problem, isAuthenticated, toast, onClose }) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [mode, setMode] = useState('code'); // 'code' | 'preview'
 
   useEffect(() => {
-    if (open) { setActiveIdx(0); setCopied(false); }
+    if (open) { setActiveIdx(0); setCopied(false); setMode('code'); }
   }, [open, problem]);
 
   if (!open || !problem) return null;
@@ -39,32 +41,60 @@ export default function SolutionModal({ open, problem, onClose }) {
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
-          <div className="lang-tabs">
-            {sols.map((s, i) => (
-              <button
-                key={i}
-                type="button"
-                className={`lang-tab${i === activeIdx ? ' active' : ''}`}
-                onClick={() => { setActiveIdx(i); setCopied(false); }}
-              >
-                {s.lang}
-              </button>
-            ))}
-          </div>
-          <div className="mac-window">
-            <div className="mac-window-bar">
-              <div className="mac-dots">
-                <span className="mac-dot mac-dot-red"></span>
-                <span className="mac-dot mac-dot-yellow"></span>
-                <span className="mac-dot mac-dot-green"></span>
-              </div>
-              <span className="mac-window-lang">{current ? current.lang : ''}</span>
-              <button className={`copy-btn${copied ? ' copied' : ''}`} type="button" onClick={handleCopy}>
-                <span>{copied ? 'Copied' : 'Copy'}</span>
-              </button>
+          <div className="solution-top-row">
+            <div className="lang-tabs">
+              {sols.map((s, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`lang-tab${i === activeIdx ? ' active' : ''}`}
+                  onClick={() => { setActiveIdx(i); setCopied(false); }}
+                >
+                  {s.lang}
+                </button>
+              ))}
             </div>
-            <pre className="solution-code">{code}</pre>
+            {current && (
+              <div className="mode-toggle">
+                <button
+                  className={`mode-btn${mode === 'code' ? ' active' : ''}`}
+                  onClick={() => setMode('code')}
+                >💻 Code</button>
+                <button
+                  className={`mode-btn${mode === 'preview' ? ' active' : ''}`}
+                  onClick={() => setMode('preview')}
+                >🔮 Live Preview</button>
+              </div>
+            )}
           </div>
+
+          {mode === 'code' && (
+            <div className="mac-window">
+              <div className="mac-window-bar">
+                <div className="mac-dots">
+                  <span className="mac-dot mac-dot-red"></span>
+                  <span className="mac-dot mac-dot-yellow"></span>
+                  <span className="mac-dot mac-dot-green"></span>
+                </div>
+                <span className="mac-window-lang">{current ? current.lang : ''}</span>
+                <button className={`copy-btn${copied ? ' copied' : ''}`} type="button" onClick={handleCopy}>
+                  <span>{copied ? 'Copied' : 'Copy'}</span>
+                </button>
+              </div>
+              <pre className="solution-code">{code}</pre>
+            </div>
+          )}
+
+          {mode === 'preview' && current && (
+            <LivePreview
+              problem={problem}
+              lang={current.lang}
+              code={code}
+              isAuthenticated={isAuthenticated}
+              toast={toast}
+            />
+          )}
+
           {problem.notes && (
             <div className="solution-notes visible">
               <p className="notes-label">Notes</p>

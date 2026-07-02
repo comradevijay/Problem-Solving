@@ -211,6 +211,8 @@ export default function App() {
       <SolutionModal
         open={!!solutionModalUid}
         problem={solutionProblem}
+        isAuthenticated={isAuthenticated}
+        toast={toast}
         onClose={() => setSolutionModalUid(null)}
       />
 
